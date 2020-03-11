@@ -1,7 +1,7 @@
-export VERSION="2.9.6"
+export VERSION="2.9.7"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld
-USER="glipsl"
+USER="e3sm"
 PLATFORM="noarch"
 PKG="esgprep"
 
