@@ -18,8 +18,8 @@ from hurry.filesize import size
 from treelib import Tree
 from treelib.tree import DuplicatedNodeIdError
 
-from constants import *
-from custom_exceptions import *
+from .constants import *
+from .custom_exceptions import *
 from esgprep.utils.custom_print import *
 from esgprep.utils.misc import ncopen
 
@@ -61,10 +61,10 @@ class File(object):
         """
         if key in self.attributes:
             return self.attributes[key]
-        elif key in self.__dict__.keys():
+        elif key in list(self.__dict__.keys()):
             return self.__dict__[key]
         else:
-            raise KeyNotFound(key, self.attributes.keys() + self.__dict__.keys())
+            raise KeyNotFound(key, list(self.attributes.keys()) + list(self.__dict__.keys()))
 
     def load_attributes(self, root, pattern, set_values):
         """
@@ -84,7 +84,7 @@ class File(object):
         with ncopen(self.ffp) as nc:
             for attr in nc.ncattrs():
                 # If attribute value is a separated list, pick up the first item as facet value
-                self.attributes[attr] = unicode(nc.getncattr(attr)).split()[0]
+                self.attributes[attr] = str(nc.getncattr(attr)).split()[0]
         # Get attributes from filename, overwriting existing ones
         match = re.search(pattern, self.filename)
         if not match:
@@ -111,13 +111,13 @@ class File(object):
         :raises Error: If one facet checkup fails
 
         """
-        for facet in set(facets).intersection(self.attributes.keys()) - set(IGNORED_KEYS):
+        for facet in set(facets).intersection(list(self.attributes.keys())) - set(IGNORED_KEYS):
             config.check_options({facet: self.attributes[facet]})
-        for facet in set(facets).difference(self.attributes.keys()) - set(IGNORED_KEYS):
+        for facet in set(facets).difference(list(self.attributes.keys())) - set(IGNORED_KEYS):
             try:
                 self.attributes[facet] = config.get_option_from_map('{}_map'.format(facet), self.attributes)
             except NoConfigOption:
-                if facet in set_keys.keys():
+                if facet in list(set_keys.keys()):
                     try:
                         # Rename attribute key
                         self.attributes[facet] = self.attributes.pop(set_keys[facet])
@@ -126,7 +126,7 @@ class File(object):
                         raise NoNetCDFAttribute(set_keys[facet], self.ffp)
                 else:
                     # Find closest NetCDF attributes in terms of partial string comparison
-                    key, score = extractOne(facet, self.attributes.keys(), scorer=partial_ratio)
+                    key, score = extractOne(facet, list(self.attributes.keys()), scorer=partial_ratio)
                     if score >= 80:
                         # Rename attribute key
                         self.attributes[facet] = self.attributes.pop(key)
@@ -145,7 +145,7 @@ class File(object):
         :rtype: *OrderedDict*
 
         """
-        return OrderedDict(zip(facets, [self.attributes[facet] for facet in facets]))
+        return OrderedDict(list(zip(facets, [self.attributes[facet] for facet in facets])))
 
 
 class DRSPath(object):
@@ -159,9 +159,9 @@ class DRSPath(object):
 
     def __init__(self, parts):
         # Retrieve the dataset directory parts
-        self.d_parts = OrderedDict(parts.items()[:parts.keys().index('version')])
+        self.d_parts = OrderedDict(list(parts.items())[:list(parts.keys()).index('version')])
         # Retrieve the file directory parts
-        self.f_parts = OrderedDict(parts.items()[parts.keys().index('version') + 1:])
+        self.f_parts = OrderedDict(list(parts.items())[list(parts.keys()).index('version') + 1:])
         # Retrieve the upgrade version
         self.v_upgrade = DRSPath.TREE_VERSION
         # If the dataset path is not equivalent to the file diretcory (e.g., CMIP5 like)
@@ -185,10 +185,10 @@ class DRSPath(object):
         """
         if key in self.d_parts:
             return self.d_parts[key]
-        elif key in self.f_parts.keys():
+        elif key in list(self.f_parts.keys()):
             return self.f_parts[key]
         else:
-            raise KeyNotFound(key, self.d_parts.keys() + self.f_parts.keys())
+            raise KeyNotFound(key, list(self.d_parts.keys()) + list(self.f_parts.keys()))
 
     def items(self, d_part=True, f_part=True, version=True, file_folder=False, latest=False, root=False):
         """
@@ -219,9 +219,9 @@ class DRSPath(object):
             parts.update(self.f_parts)
         if file_folder:
             parts.update(self.v_files)
-        if not root and 'root' in parts.keys():
+        if not root and 'root' in list(parts.keys()):
             del parts['root']
-        return parts.values()
+        return list(parts.values())
 
     def path(self, **kwargs):
         """
@@ -395,7 +395,7 @@ class DRSTree(Tree):
         """
         self.d_lengths = [50, 20, 20, 16, 16]
         if self.paths:
-            self.d_lengths[0] = max([len(i) for i in self.paths.keys()])
+            self.d_lengths[0] = max([len(i) for i in list(self.paths.keys())])
         self.d_lengths.append(sum(self.d_lengths) + 2)
 
     def create_leaf(self, nodes, leaf, label, src, mode, origin=None, force=False):
@@ -445,7 +445,7 @@ class DRSTree(Tree):
 
         """
         if root is None:
-            for node in self._nodes.values():
+            for node in list(self._nodes.values()):
                 if node.is_leaf():
                     yield node
         else:
@@ -459,7 +459,7 @@ class DRSTree(Tree):
         Each data version to upgrade has to be stricly different from the latest version if exists.
 
         """
-        for dset_path, incomings in self.paths.items():
+        for dset_path, incomings in list(self.paths.items()):
             filenames = [incoming['filename'] for incoming in incomings]
             duplicates = [incoming['is_duplicate'] for incoming in incomings]
             latests = [incoming['latest'] for incoming in incomings]
@@ -481,14 +481,14 @@ class DRSTree(Tree):
         List and summary upgrade information at the publication level.
 
         """
-        print(''.center(self.d_lengths[-1], '='))
-        print('{}{}->{}{}{}'.format('Publication level'.center(self.d_lengths[0]),
+        print((''.center(self.d_lengths[-1], '=')))
+        print(('{}{}->{}{}{}'.format('Publication level'.center(self.d_lengths[0]),
                                     'Latest version'.center(self.d_lengths[1]),
                                     'Upgrade version'.center(self.d_lengths[2]),
                                     'Files to upgrade'.rjust(self.d_lengths[3]),
-                                    'Upgrade size'.rjust(self.d_lengths[4])))
-        print(''.center(self.d_lengths[-1], '-'))
-        for dset_path, incomings in self.paths.items():
+                                    'Upgrade size'.rjust(self.d_lengths[4]))))
+        print((''.center(self.d_lengths[-1], '-')))
+        for dset_path, incomings in list(self.paths.items()):
             dset_dir, dset_version = os.path.dirname(dset_path), os.path.basename(dset_path)
             publication_level = os.path.normpath(dset_dir)
             files_number = len(incomings)
@@ -496,23 +496,23 @@ class DRSTree(Tree):
             assert latests.count(latests[0]) == len(latests)
             latest_version = latests[0]
             total_size = size(sum([incoming['size'] for incoming in incomings]))
-            print('{}{}->{}{}{}'.format(publication_level.ljust(self.d_lengths[0]),
+            print(('{}{}->{}{}{}'.format(publication_level.ljust(self.d_lengths[0]),
                                         latest_version.center(self.d_lengths[1]),
                                         dset_version.center(self.d_lengths[2]),
                                         str(files_number).rjust(self.d_lengths[3]),
-                                        total_size.rjust(self.d_lengths[4])))
-        print(''.center(self.d_lengths[-1], '='))
+                                        total_size.rjust(self.d_lengths[4]))))
+        print((''.center(self.d_lengths[-1], '=')))
 
     def tree(self):
         """
         Prints the whole DRS tree in a visual way.
 
         """
-        print(''.center(self.d_lengths[-1], '='))
-        print('Upgrade DRS Tree'.center(self.d_lengths[-1]))
-        print(''.center(self.d_lengths[-1], '-'))
+        print((''.center(self.d_lengths[-1], '=')))
+        print(('Upgrade DRS Tree'.center(self.d_lengths[-1])))
+        print((''.center(self.d_lengths[-1], '-')))
         self.show()
-        print(''.center(self.d_lengths[-1], '='))
+        print((''.center(self.d_lengths[-1], '=')))
 
     def todo(self):
         """
@@ -533,12 +533,12 @@ class DRSTree(Tree):
             for leaf in self.leaves():
                 leaf.data.has_permissions(self.drs_root)
                 leaf.data.migration_granted(self.drs_root)
-        print(''.center(self.d_lengths[-1], '='))
+        print((''.center(self.d_lengths[-1], '=')))
         if todo_only:
-            print('Unix command-lines (DRY-RUN)'.center(self.d_lengths[-1]))
+            print(('Unix command-lines (DRY-RUN)'.center(self.d_lengths[-1])))
         else:
-            print('Unix command-lines'.center(self.d_lengths[-1]))
-        print(''.center(self.d_lengths[-1], '-'))
+            print(('Unix command-lines'.center(self.d_lengths[-1])))
+        print((''.center(self.d_lengths[-1], '-')))
         for leaf in self.leaves():
             leaf.data.upgrade(todo_only, self.commands_file)
         for duplicate in self.duplicates:
@@ -552,8 +552,8 @@ class DRSTree(Tree):
                     # If access granted, remove file
                     remove(duplicate)
         if todo_only and self.commands_file:
-            print('Command-lines to apply have been exported to {}'.format(self.commands_file))
-        print(''.center(self.d_lengths[-1], '='))
+            print(('Command-lines to apply have been exported to {}'.format(self.commands_file)))
+        print((''.center(self.d_lengths[-1], '=')))
 
 
 def print_cmd(line, commands_file, todo_only, mode='a'):

@@ -8,7 +8,7 @@
 
 import traceback
 
-from context import ProcessingContext
+from .context import ProcessingContext
 from esgprep.utils.github import *
 
 
@@ -55,7 +55,7 @@ def run(args):
         outdir = make_outdir(root=ctx.config_dir)
         # Counter
         progress = 0
-        for f, info in ctx.files.items():
+        for f, info in list(ctx.files.items()):
             try:
                 # Set output file full path
                 outfile = os.path.join(outdir, f)

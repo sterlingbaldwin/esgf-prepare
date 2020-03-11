@@ -13,13 +13,13 @@ from multiprocessing import Pool
 from ESGConfigParser import interpolate, MissingPatternKey, BadInterpolation, InterpolationDepthError
 from lockfile import LockFile
 
-from constants import *
-from context import ProcessingContext
-from custom_exceptions import *
+from .constants import *
+from .context import ProcessingContext
+from .custom_exceptions import *
 from esgprep.utils.custom_print import *
 from esgprep.utils.misc import evaluate, remove, get_checksum, ProcessContext
 from esgprep.utils.output_control import OutputControl
-from handler import File, Dataset
+from .handler import File, Dataset
 
 
 def get_output_mapfile(outdir, attributes, mapfile_name, dataset_id, dataset_version, mapfile_drs=None, basename=False):
@@ -47,7 +47,7 @@ def get_output_mapfile(outdir, attributes, mapfile_name, dataset_id, dataset_ver
             try:
                 outdir = os.path.join(outdir, interpolate(mapfile_drs, attributes))
             except (BadInterpolation, InterpolationDepthError):
-                raise MissingPatternKey(attributes.keys(), mapfile_drs)
+                raise MissingPatternKey(list(attributes.keys()), mapfile_drs)
         else:
             outdir = os.path.realpath(outdir)
     # Create output directory if not exists, catch OSError instead
@@ -93,7 +93,7 @@ def mapfile_entry(dataset_id, dataset_version, ffp, size, optional_attrs):
         line = ['{}#{}'.format(dataset_id, dataset_version[1:])]
     line.append(ffp)
     line.append(str(size))
-    for k, v in optional_attrs.items():
+    for k, v in list(optional_attrs.items()):
         if v:
             line.append('{}={}'.format(k, v))
     return ' | '.join(line) + '\n'
@@ -137,7 +137,7 @@ def process(source):
 
     """
     # Get process content from process global env
-    assert 'pctx' in globals().keys()
+    assert 'pctx' in list(globals().keys())
     pctx = globals()['pctx']
     # Block to avoid program stop if a thread fails
     try:
@@ -251,36 +251,36 @@ def run(args):
         # Init progress bar
         if ctx.use_pool:
             # Init processes pool
-            pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(cctx.keys(), cctx.values()))
+            pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(list(cctx.keys()), list(cctx.values())))
             processes = pool.imap(process, ctx.sources)
         else:
-            initializer(cctx.keys(), cctx.values())
-            processes = itertools.imap(process, ctx.sources)
+            initializer(list(cctx.keys()), list(cctx.values()))
+            processes = map(process, ctx.sources)
         # Process supplied sources
         results = [x for x in processes]
         # Close pool of workers if exists
-        if 'pool' in locals().keys():
+        if 'pool' in list(locals().keys()):
             locals()['pool'].close()
             locals()['pool'].join()
         Print.progress('\n')
         # Flush buffer
         Print.flush()
         # Get number of files scanned (excluding errors/skipped files)
-        ctx.scan_data = len(filter(None, results))
+        ctx.scan_data = len([_f for _f in results if _f])
         # Get number of scan errors
         ctx.scan_errors = results.count(None)
         # Get number of generated mapfiles
-        ctx.nbmap = len(filter(None, set(results)))
+        ctx.nbmap = len([_f for _f in set(results) if _f])
         # Evaluates the scan results to finalize mapfiles writing
         if evaluate(results):
-            for mapfile in filter(None, set(results)):
+            for mapfile in [_f for _f in set(results) if _f]:
                 # Remove mapfile working extension
                 if ctx.action == 'show':
                     # Print mapfiles to be generated
                     result = remove(WORKING_EXTENSION, mapfile)
                     if quiet:
                         output_control.stdout_on()
-                        print result
+                        print(result)
                         output_control.stdout_off()
                     else:
                         Print.result(result)

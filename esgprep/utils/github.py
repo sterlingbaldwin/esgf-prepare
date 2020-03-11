@@ -152,4 +152,4 @@ def githash(outfile):
     s = hashlib.sha1()
     s.update("blob %u\0" % len(data))
     s.update(data)
-    return unicode(s.hexdigest())
+    return str(s.hexdigest())

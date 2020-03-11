@@ -19,7 +19,7 @@ else
 fi
 echo "Building" $VERSION"-"$BUILD_NAME "for label:" $TAG
 
-conda build -c conda-forge -c bioconda .
+conda build -c conda-forge .
 
 if [ $? -eq 1 ]; then
     echo "conda build failed"

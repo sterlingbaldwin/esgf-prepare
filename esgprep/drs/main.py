@@ -10,12 +10,12 @@ import itertools
 import traceback
 from multiprocessing import Pool
 
-from constants import *
-from context import ProcessingContext
-from custom_exceptions import *
+from .constants import *
+from .context import ProcessingContext
+from .custom_exceptions import *
 from esgprep.utils.custom_print import *
 from esgprep.utils.misc import load, store, evaluate, ProcessContext, get_tracking_id, get_checksum
-from handler import File, DRSPath, DRSTree
+from .handler import File, DRSPath, DRSTree
 
 
 def process(source):
@@ -36,7 +36,7 @@ def process(source):
 
     """
     # Get process content from process global env
-    assert 'pctx' in globals().keys()
+    assert 'pctx' in list(globals().keys())
     pctx = globals()['pctx']
     # Block to avoid program stop if a thread fails
     try:
@@ -124,7 +124,7 @@ def tree_builder(fh):
 
     """
     # Get process content from process global env
-    assert 'pctx' in globals().keys()
+    assert 'pctx' in list(globals().keys())
     pctx = globals()['pctx']
     try:
         # If a latest version already exists it should be older than upgrade version
@@ -204,7 +204,7 @@ def tree_builder(fh):
                   'latest': fh.drs.v_latest or 'Initial',
                   'size': fh.size,
                   'is_duplicate': fh.is_duplicate}
-        if fh.drs.path(f_part=False) in tree.paths.keys():
+        if fh.drs.path(f_part=False) in list(tree.paths.keys()):
             tree.paths[fh.drs.path(f_part=False)].append(record)
         else:
             tree.paths[fh.drs.path(f_part=False)] = [record]
@@ -255,7 +255,7 @@ def do_scanning(ctx):
         return True
     elif os.path.isfile(TREE_FILE):
         reader = load(TREE_FILE)
-        old_args = reader.next()
+        old_args = next(reader)
         # Ensure that processing context is similar to previous step
         for k in CONTROLLED_ARGS:
             if getattr(ctx, k) != old_args[k]:
@@ -295,33 +295,33 @@ def run(args):
         if do_scanning(ctx):
             if ctx.use_pool:
                 # Init processes pool
-                pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(cctx.keys(), cctx.values()))
+                pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(list(cctx.keys()), list(cctx.values())))
                 processes = pool.imap(process, ctx.sources)
             else:
-                initializer(cctx.keys(), cctx.values())
-                processes = itertools.imap(process, ctx.sources)
+                initializer(list(cctx.keys()), list(cctx.values()))
+                processes = map(process, ctx.sources)
             # Process supplied sources
             handlers = [x for x in processes]
             # Close pool of workers if exists
-            if 'pool' in locals().keys():
+            if 'pool' in list(locals().keys()):
                 locals()['pool'].close()
                 locals()['pool'].join()
             Print.progress('\n')
             # Build DRS tree
             cctx['progress'].value = 0
-            initializer(cctx.keys(), cctx.values())
+            initializer(list(cctx.keys()), list(cctx.values()))
             handlers = [h for h in handlers if h is not None]
-            results = [x for x in itertools.imap(tree_builder, handlers)]
+            results = [x for x in map(tree_builder, handlers)]
             Print.progress('\n')
         else:
             reader = load(TREE_FILE)
             msg = 'Skip incoming files scan (use "--rescan" to force it) -- '
             msg += 'Using cached DRS tree from {}'.format(TREE_FILE)
             Print.warning(msg)
-            _ = reader.next()
-            tree = reader.next()
-            handlers = reader.next()
-            results = reader.next()
+            _ = next(reader)
+            tree = next(reader)
+            handlers = next(reader)
+            results = next(reader)
         # Flush buffer
         Print.flush()
         # Rollback --commands-file value to command-line argument in any case

@@ -6,7 +6,7 @@
 
 """
 
-from constants import *
+from .constants import *
 from esgprep.utils.collectors import PathCollector, DatasetCollector, Collector
 from esgprep.utils.context import MultiprocessingContext
 from esgprep.utils.custom_print import *
@@ -36,8 +36,8 @@ class ProcessingContext(MultiprocessingContext):
         super(ProcessingContext, self).__enter__()
         # Get the DRS facet keys from pattern
         self.facets = list()
-        self.facets = re.compile(self.cfg.translate('directory_format', add_ending_filename=True)).groupindex.keys()
-        self.facets.extend(re.compile(self.cfg.translate('dataset_id')).groupindex.keys())
+        self.facets = list(re.compile(self.cfg.translate('directory_format', add_ending_filename=True)).groupindex.keys())
+        self.facets.extend(list(re.compile(self.cfg.translate('dataset_id')).groupindex.keys()))
         self.facets = set(self.facets).difference(set(IGNORED_KEYS))
         # Init data collector
         if self.directory:

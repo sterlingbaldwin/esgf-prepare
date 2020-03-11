@@ -25,9 +25,9 @@ class Collecting:
 
     def __init__(self, spinner):
         self.spinner = spinner
-        self.next()
+        next(self)
 
-    def next(self):
+    def __next__(self):
         """
         Print collector spinner
 
@@ -78,7 +78,7 @@ class Collector(object):
         try:
             s = 0
             for _ in self.__iter__():
-                progress.next()
+                next(progress)
                 s += 1
             if self.spinner:
                 sys.stdout.write('\r\033[K')
@@ -183,7 +183,7 @@ class VersionedPathCollector(PathCollector):
         regex = re.compile(self.format.replace('/(?P<project>[\w.-]+)/', '/{}/'.format(self.project.lower())))
         version = None
         # Test directory_format regex without <filename> part
-        while 'version' in regex.groupindex.keys():
+        while 'version' in list(regex.groupindex.keys()):
             if regex.search(directory.lower()):
                 # If version facet found return its value
                 version = regex.search(directory.lower()).groupdict()['version']
@@ -241,4 +241,4 @@ class FilterCollection(object):
         self.filters[name] = (regex, inclusive)
 
     def __call__(self, string):
-        return all([match(regex, string, inclusive=inclusive) for regex, inclusive in self.filters.values()])
+        return all([match(regex, string, inclusive=inclusive) for regex, inclusive in list(self.filters.values())])

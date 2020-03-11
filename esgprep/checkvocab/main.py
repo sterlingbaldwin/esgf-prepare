@@ -15,8 +15,8 @@ from ESGConfigParser.custom_exceptions import ExpressionNotMatch, NoConfigOption
 from fuzzywuzzy.fuzz import partial_ratio
 from fuzzywuzzy.process import extractOne
 
-from constants import *
-from context import ProcessingContext
+from .constants import *
+from .context import ProcessingContext
 from esgprep.utils.custom_print import *
 from esgprep.utils.misc import ProcessContext, ncopen
 
@@ -33,7 +33,7 @@ def process(source):
 
     """
     # Get process content from process global env
-    assert 'pctx' in globals().keys()
+    assert 'pctx' in list(globals().keys())
     pctx = globals()['pctx']
     # Block to avoid program stop if a thread fails
     try:
@@ -53,18 +53,18 @@ def process(source):
             attributes.update(match.groupdict())
         # Get source values from attributes
         for facet in pctx.facets:
-            if facet in pctx.set_keys.keys():
+            if facet in list(pctx.set_keys.keys()):
                 try:
                     # Rename attribute key
                     attributes[facet] = attributes.pop(pctx.set_keys[facet])
                 except KeyError:
                     raise NoNetCDFAttribute(pctx.set_keys[facet], source)
-            elif facet in attributes.keys():
+            elif facet in list(attributes.keys()):
                 # Facet exists in attribute keys
                 pass
             else:
                 # Find closest NetCDF attributes in terms of partial string comparison
-                key, score = extractOne(facet, attributes.keys(), scorer=partial_ratio)
+                key, score = extractOne(facet, list(attributes.keys()), scorer=partial_ratio)
                 if score >= 80:
                     # Rename attribute key
                     attributes[facet] = attributes.pop(key)
@@ -131,15 +131,15 @@ def run(args):
         cctx['source_values'][0] = dict((facet, set()) for facet in ctx.facets)
         if ctx.use_pool:
             # Init processes pool
-            pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(cctx.keys(), cctx.values()))
+            pool = Pool(processes=ctx.processes, initializer=initializer, initargs=(list(cctx.keys()), list(cctx.values())))
             processes = pool.imap(process, ctx.sources)
         else:
-            initializer(cctx.keys(), cctx.values())
-            processes = itertools.imap(process, ctx.sources)
+            initializer(list(cctx.keys()), list(cctx.values()))
+            processes = map(process, ctx.sources)
         # Process supplied sources
         results = [x for x in processes]
         # Close pool of workers if exists
-        if 'pool' in locals().keys():
+        if 'pool' in list(locals().keys()):
             locals()['pool'].close()
             locals()['pool'].join()
         Print.progress('\n')
@@ -166,7 +166,7 @@ def run(args):
                         if facet in from_keys:
                             config_values[facet] = set(ctx.cfg.get_options_from_map(option, facet))
                 finally:
-                    if facet not in config_values.keys():
+                    if facet not in list(config_values.keys()):
                         raise NoConfigOptions(facet)
                 msg = TAGS.SUCCESS
                 msg += 'Get values from {} for {}'.format(COLORS.HEADER(ctx.cfg.file),

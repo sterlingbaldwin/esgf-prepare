@@ -6,7 +6,7 @@
 
 """
 
-from constants import *
+from .constants import *
 from esgprep.utils.constants import GITHUB_API_PARAMETER
 from esgprep.utils.context import GitHubBaseContext
 from esgprep.utils.github import *
@@ -37,7 +37,7 @@ class ProcessingContext(GitHubBaseContext):
         r = gh_request_content(url=self.url, auth=self.auth)
         infos = {f['name']: f for f in r.json() if re.search(INI_PATTERN, f['name'])}
         # Get the list of project to fetch
-        p_found = set([re.search(INI_PATTERN, x).group(1) for x in infos.keys()])
+        p_found = set([re.search(INI_PATTERN, x).group(1) for x in list(infos.keys())])
         # Control specified project names
         if self.project:
             p = set(self.project)
@@ -51,7 +51,7 @@ class ProcessingContext(GitHubBaseContext):
             # Get all projects
             self.project = p_found
         # Remove undesired files
-        self.files = {k: v for k, v in infos.items() if k in ['esg.{}.ini'.format(p) for p in self.project]}
+        self.files = {k: v for k, v in list(infos.items()) if k in ['esg.{}.ini'.format(p) for p in self.project]}
         # Get number of files to fetch
         self.nfiles = len(self.files)
         if not self.nfiles:

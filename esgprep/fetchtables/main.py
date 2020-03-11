@@ -8,8 +8,8 @@
 
 import traceback
 
-from constants import *
-from context import ProcessingContext
+from .constants import *
+from .context import ProcessingContext
 from esgprep.utils.constants import GITHUB_API_PARAMETER
 from esgprep.utils.github import *
 
@@ -67,17 +67,17 @@ def fetch_gh_ref(url, outdir, auth, keep, overwrite, backup_mode, filter, specia
     """
     # Get GitHub file content
     r = gh_request_content(url=url, auth=auth)
-    files = dict([(f['name'], f) for f in r.json() if filter(f['name'])])
+    files = dict([(f['name'], f) for f in r.json() if list(filter(f['name']))])
     # Get number of files
     nfiles = len(files)
     if not nfiles:
         Print.warning('No files found on remote repository: {}'.format(url))
     # Counter
     progress = 0
-    for f, info in files.items():
+    for f, info in list(files.items()):
         try:
             # Overwrite info by special cases ones
-            if special_cases and f in special_cases.keys():
+            if special_cases and f in list(special_cases.keys()):
                 info = special_cases[f]
             # Set output file full path
             outfile = os.path.join(outdir, f)
@@ -138,7 +138,7 @@ def run(args):
                         raise GitHubReferenceNotFound(ctx.ref, refs)
                     fetch_refs = [ctx.ref]
                 else:
-                    fetch_refs = filter(re.compile(ctx.ref_regex).match, refs)
+                    fetch_refs = list(filter(re.compile(ctx.ref_regex).match, refs))
                     if not fetch_refs:
                         raise GitHubReferenceNotFound(ctx.ref_regex.pattern, refs)
                 Print.debug('GitHub Available reference(s): {}'.format(', '.join(sorted(refs))))

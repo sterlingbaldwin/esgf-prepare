@@ -54,7 +54,7 @@ class TestFetchINI(object):
         args = {'fetch_one_project': '-p cmip5',
                 'fetch_list_of_projects': '-p cmip5 cordex cmip6',
                 'fetch_all_projects': ''}
-        for name, arg in args.iteritems():
+        for name, arg in args.items():
             fetch_projects.description = name
             yield fetch_projects, name, '-i {} '.format(INI_TEST_DIR) + arg
 

@@ -10,8 +10,8 @@ from argparse import FileType
 
 from esgprep.checkvocab.main import run
 from esgprep.utils.help import *
-from utils.constants import *
-from utils.parser import *
+from .utils.constants import *
+from .utils.parser import *
 
 __version__ = 'from esgprep v{} {}'.format(VERSION, VERSION_DATE)
 
@@ -45,7 +45,7 @@ def get_args():
         '-i',
         metavar='$ESGINI_DIR',
         action=DirectoryChecker,
-        default=os.environ['ESGINI_DIR'] if 'ESGINI_DIR' in os.environ.keys() else '/esg/config/esgcet',
+        default=os.environ['ESGINI_DIR'] if 'ESGINI_DIR' in list(os.environ.keys()) else '/esg/config/esgcet',
         help=INI_HELP)
     main.add_argument(
         '-l', '--log',

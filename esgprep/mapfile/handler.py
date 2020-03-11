@@ -12,7 +12,7 @@ import re
 from ESGConfigParser import interpolate
 from ESGConfigParser.custom_exceptions import ExpressionNotMatch, NoConfigOption, MissingPatternKey
 
-from constants import *
+from .constants import *
 from esgprep.utils.custom_exceptions import *
 
 
@@ -41,10 +41,10 @@ class Source(object):
         """
         if key in self.attributes:
             return self.attributes[key]
-        elif key in self.__dict__.keys():
+        elif key in list(self.__dict__.keys()):
             return self.__dict__[key]
         else:
-            raise KeyNotFound(key, self.attributes.keys() + self.__dict__.keys())
+            raise KeyNotFound(key, list(self.attributes.keys()) + list(self.__dict__.keys()))
 
     def load_attributes(self, pattern):
         """
@@ -73,9 +73,9 @@ class Source(object):
         :raises Error: If one facet checkup fails
 
         """
-        for facet in set(facets).intersection(self.attributes.keys()) - set(IGNORED_KEYS):
+        for facet in set(facets).intersection(list(self.attributes.keys())) - set(IGNORED_KEYS):
             config.check_options({facet: self.attributes[facet]})
-        for facet in set(facets).difference(self.attributes.keys()) - set(IGNORED_KEYS):
+        for facet in set(facets).difference(list(self.attributes.keys())) - set(IGNORED_KEYS):
             try:
                 self.attributes[facet] = config.get_option_from_map('{}_map'.format(facet), self.attributes)
             except:
@@ -94,7 +94,7 @@ class Source(object):
         try:
             return interpolate(dataset_format, self.attributes)
         except:
-            raise MissingPatternKey(self.attributes.keys(), dataset_format)
+            raise MissingPatternKey(list(self.attributes.keys()), dataset_format)
 
     def get_dataset_version(self, no_version=False):
         """

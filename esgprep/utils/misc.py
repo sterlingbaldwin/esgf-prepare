@@ -12,7 +12,7 @@ from uuid import UUID
 
 from netCDF4 import Dataset
 
-from custom_print import *
+from .custom_print import *
 from esgprep.drs.constants import PID_PREFIXES
 
 
@@ -28,7 +28,7 @@ class ProcessContext(object):
 
     def __init__(self, args):
         assert isinstance(args, dict)
-        for key, value in args.items():
+        for key, value in list(args.items()):
             setattr(self, key, value)
 
 
@@ -203,7 +203,7 @@ def get_tracking_id(ffp, project):
                 assert prefix == PID_PREFIXES[project]
             except ValueError:
                 uid = id
-                assert project not in PID_PREFIXES.keys()
+                assert project not in list(PID_PREFIXES.keys())
             assert is_uuid(uid)
             return id
         else:

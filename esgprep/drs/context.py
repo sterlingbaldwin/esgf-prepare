@@ -8,13 +8,13 @@
 
 from uuid import uuid4 as uuid
 
-from constants import *
-from custom_exceptions import *
+from .constants import *
+from .custom_exceptions import *
 from esgprep.utils.collectors import Collector
 from esgprep.utils.context import MultiprocessingContext
 from esgprep.utils.custom_print import *
 from esgprep.utils.misc import load_checksums
-from handler import DRSTree, DRSPath
+from .handler import DRSTree, DRSPath
 
 
 class ProcessingContext(MultiprocessingContext):

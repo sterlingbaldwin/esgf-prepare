@@ -12,8 +12,8 @@ import sys
 from ctypes import c_char_p
 from multiprocessing import Value
 
-from constants import SHELL_COLORS
-from custom_exceptions import *
+from .constants import SHELL_COLORS
+from .custom_exceptions import *
 
 _colors_enabled = [sys.stdout.isatty()]
 
@@ -32,12 +32,12 @@ class COLOR:
     Default is no color (i.e., restore original color)
 
     """
-    PALETTE = {color: i + 30 for (color, i) in SHELL_COLORS.items()}
-    PALETTE.update({'light ' + color: i + 90 for (color, i) in SHELL_COLORS.items()})
+    PALETTE = {color: i + 30 for (color, i) in list(SHELL_COLORS.items())}
+    PALETTE.update({'light ' + color: i + 90 for (color, i) in list(SHELL_COLORS.items())})
     RESTORE = '\033[0m'
 
     def __init__(self, color=None):
-        if color in COLOR.PALETTE.keys():
+        if color in list(COLOR.PALETTE.keys()):
             self.color = COLOR.PALETTE[color]
         else:
             self.color = 0

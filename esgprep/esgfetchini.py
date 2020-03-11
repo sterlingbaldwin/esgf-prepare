@@ -8,9 +8,9 @@
 """
 
 from esgprep.fetchini.main import run
-from utils.constants import *
-from utils.help import *
-from utils.parser import *
+from .utils.constants import *
+from .utils.help import *
+from .utils.parser import *
 
 __version__ = 'from esgprep v{} {}'.format(VERSION, VERSION_DATE)
 
@@ -44,7 +44,7 @@ def get_args(args=None):
         '-i',
         metavar='$ESGINI_DIR',
         type=str,
-        default=os.environ['ESGINI_DIR'] if 'ESGINI_DIR' in os.environ.keys() else '/esg/config/esgcet',
+        default=os.environ['ESGINI_DIR'] if 'ESGINI_DIR' in list(os.environ.keys()) else '/esg/config/esgcet',
         help=INI_HELP)
     main.add_argument(
         '-l', '--log',
@@ -86,13 +86,13 @@ def get_args(args=None):
     main.add_argument(
         '--gh-user',
         metavar='USERNAME',
-        default=os.environ['GH_USER'] if 'GH_USER' in os.environ.keys() else None,
+        default=os.environ['GH_USER'] if 'GH_USER' in list(os.environ.keys()) else None,
         type=str,
         help=GITHUB_USER_HELP)
     main.add_argument(
         '--gh-password',
         metavar='PASSWORD',
-        default=os.environ['GH_PASSWORD'] if 'GH_PASSWORD' in os.environ.keys() else None,
+        default=os.environ['GH_PASSWORD'] if 'GH_PASSWORD' in list(os.environ.keys()) else None,
         type=str,
         help=GITHUB_PASSWORD_HELP)
     main.add_argument(
