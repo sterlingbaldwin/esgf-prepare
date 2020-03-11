@@ -17,12 +17,13 @@ about:
 
 requirements:
   build:
-    - python
+    - python=3
     - setuptools
     - pip
+    - configparser
 
   run:
-    - python
+    - python=3
     - lockfile
     - esgf-config-parser
     - requests

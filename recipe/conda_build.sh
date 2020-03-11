@@ -1,4 +1,4 @@
-export VERSION="2.9.3"
+export VERSION="2.9.6"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld
 USER="glipsl"
@@ -19,7 +19,7 @@ else
 fi
 echo "Building" $VERSION"-"$BUILD_NAME "for label:" $TAG
 
-conda build -c conda-forge .
+conda build -c conda-forge -c bioconda .
 
 if [ $? -eq 1 ]; then
     echo "conda build failed"
