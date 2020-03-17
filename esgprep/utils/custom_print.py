@@ -180,7 +180,7 @@ class Print(object):
     LOG = None
     DEBUG = False
     CMD = None
-    BUFFER = ''
+    BUFFER = Value(c_char_p, '')
     LOGFILE = None
     CARRIAGE_RETURNED = True
 
@@ -313,7 +313,7 @@ class Print(object):
         if Print.LOG:
             Print.print_to_logfile(msg)
         elif buffer:
-            Print.BUFFER += msg
+            Print.BUFFER.value += msg
         elif Print.DEBUG:
             Print.print_to_stdout(msg)
         else:
@@ -327,7 +327,7 @@ class Print(object):
         if Print.LOG:
             Print.print_to_logfile(msg)
         elif buffer:
-            Print.BUFFER += msg
+            Print.BUFFER.value += msg
         elif Print.DEBUG:
             Print.print_to_stdout(msg)
         else:
@@ -343,15 +343,15 @@ class Print(object):
         elif Print.DEBUG:
             Print.print_to_stdout(msg)
         elif buffer:
-            Print.BUFFER += msg
+            Print.BUFFER.value += msg
         else:
             Print.print_to_stdout(msg)
 
     @staticmethod
     def flush():
-        if Print.BUFFER != '':
+        if Print.BUFFER.value:
             if Print.LOG:
-                Print.print_to_logfile(Print.BUFFER)
+                Print.print_to_logfile(Print.BUFFER.value)
             else:
-                Print.print_to_stdout(Print.BUFFER)
-            Print.BUFFER = ''
+                Print.print_to_stdout(Print.BUFFER.value)
+            Print.BUFFER.value = ''
