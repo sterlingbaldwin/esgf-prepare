@@ -7,7 +7,7 @@
 """
 
 from datetime import datetime
-from hashlib import algorithms as checksum_types
+from hashlib import algorithms_available as checksum_types
 
 
 ###############################
